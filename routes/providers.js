@@ -1,4 +1,5 @@
 const express = require("express");
+const axios = require("axios");
 const router = express.Router();
 const client = require("../database/db");
 const { ObjectId } = require("mongodb");
@@ -58,9 +59,53 @@ router.get("/api/:id/:category", async (req, res) => {
   // const modifiedArray = dataArrayUpdated.slice(0, 5).map((data) => {});
   const dataArrayUpdatedArray = [...dataArrayUpdated];
   const firstFiveElements = dataArrayUpdatedArray.slice(0, 3);
-  
+
   res.send(firstFiveElements);
 });
+
+router.get("/api/v2/:id/:category", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const category = req.params.category;
+
+    // Make a GET request using axios to the first API
+    const response = await axios.get(`http://localhost:5000/providers/api/${id}/${category}`);
+
+    // Perform sentiment analysis for each element in response.data
+    const promises = response.data.map(async (item) => {
+      const firstUserReviews = item.user_reviews;
+
+      // Extract reviews
+      const extractedReviews = {
+        sentences: firstUserReviews.map((review) => ({ text: review.review })),
+      };
+
+      // Make a POST request to the sentiment analysis API
+      const response2 = await axios.post("http://localhost:5001/predict", {
+        sentences: extractedReviews.sentences,
+      });
+
+      // Access the positiveness value from the response of the second API call
+      const positiveness = response2.data.overall_score;
+
+      // Store the positiveness value inside the current item
+      item.positiveness = positiveness;
+
+      return item;
+    });
+
+    // Wait for all promises to resolve
+    const updatedData = await Promise.all(promises);
+
+    // Send the updated response to the client
+    res.json(updatedData);
+  } catch (error) {
+    console.error("Error:", error.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
 
 router.get("/providers/:id/:category", async (req, res) => {
   const id = req.params.id; // Use req.params.id to get the id from route parameters
@@ -141,21 +186,19 @@ router.patch("/update_location/:userId", async (req, res) => {
   res.send(result);
 });
 
-
 router.patch("/verification/:userId", async (req, res) => {
   const id = req.params.userId;
   const { user_phone, user_verificationStatus } = req.body;
   const filter = { _id: new ObjectId(id) };
   const updateDoc = {
     $set: {
-      user_phone, user_verificationStatus
+      user_phone,
+      user_verificationStatus,
     },
   };
   const result = await usersCollection.updateOne(filter, updateDoc);
   res.send(result);
 });
-
-
 
 router.get("/appointment", async (req, res) => {
   const userId = req.query.id;
@@ -344,35 +387,31 @@ router.delete(
   }
 );
 
-
-router.patch('/approved/:id', async (req, res) => {
+router.patch("/approved/:id", async (req, res) => {
   const id = req.params.id;
 
   const filter = { _id: new ObjectId(id) };
   const updateDoc = {
     $set: {
-      status: 'approved'
+      status: "approved",
     },
   };
 
   const result = await usersCollection.updateOne(filter, updateDoc);
   res.send(result);
-
-})
-router.patch('/denied/:id', async (req, res) => {
+});
+router.patch("/denied/:id", async (req, res) => {
   const id = req.params.id;
   console.log(id);
   const filter = { _id: new ObjectId(id) };
   const updateDoc = {
     $set: {
-      status: 'denied'
+      status: "denied",
     },
   };
 
   const result = await usersCollection.updateOne(filter, updateDoc);
   res.send(result);
-
-})
-
+});
 
 module.exports = router;
