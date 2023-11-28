@@ -69,7 +69,9 @@ router.get("/api/v2/:id/:category", async (req, res) => {
     const category = req.params.category;
 
     // Make a GET request using axios to the first API
-    const response = await axios.get(`http://localhost:5000/providers/api/${id}/${category}`);
+    const response = await axios.get(
+      `http://localhost:5000/providers/api/${id}/${category}`
+    );
 
     // Perform sentiment analysis for each element in response.data
     const promises = response.data.map(async (item) => {
@@ -104,8 +106,6 @@ router.get("/api/v2/:id/:category", async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
-
 
 router.get("/providers/:id/:category", async (req, res) => {
   const id = req.params.id; // Use req.params.id to get the id from route parameters
@@ -170,6 +170,12 @@ router.get("/providersProfile", async (req, res) => {
   const result = await usersCollection.find(filter).toArray();
   res.send(result);
 });
+// router.get("/providersProfile2/:email", async (req, res) => {
+//   const email = req.param.email;
+//   const filter = { _id: new ObjectId(id) };
+//   const result = await usersCollection.find(filter).toArray();
+//   res.send(result);
+// });
 
 router.patch("/update_location/:userId", async (req, res) => {
   const id = req.params.userId;
@@ -185,6 +191,40 @@ router.patch("/update_location/:userId", async (req, res) => {
   const result = await usersCollection.updateOne(filter, updateDoc);
   res.send(result);
 });
+
+router.patch("/update_pro/:userId", async (req, res) => {
+  const id = req.params.userId;
+  const { user_rating } = req.body;
+  console.log("rating: " + user_rating);
+  const filter = { _id: new ObjectId(id) };
+  const userData = await usersCollection.find(filter).toArray();
+  const count = userData[0].user_hireCount;
+  const newCount = count + 1;
+  const updatedRating = count > 0
+    ? parseFloat(((userData[0].user_rating * count + user_rating) / newCount).toFixed(1))
+    : parseFloat(user_rating); // Parse the result to float
+  const updateDoc = {
+    $set: {
+      user_hireCount: newCount,
+      user_rating: updatedRating, // Use a different variable here
+    },
+  };
+  const result = await usersCollection.updateOne(filter, updateDoc);
+  res.send(result);
+});
+
+router.post("/post_review/:userId", async (req, res) => {
+  const id = req.params.userId;
+  const newReview = req.body;
+    const result = await usersCollection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $push: {
+          user_reviews: newReview,
+        },
+      }
+    );
+    });
 
 router.patch("/verification/:userId", async (req, res) => {
   const id = req.params.userId;
@@ -317,6 +357,75 @@ router.get("/view_appointment/:userId", async (req, res) => {
   }
 });
 
+router.patch(
+  "/updateAppointment/:userId/:clientId/:appointmentId",
+  async (req, res) => {
+    const userId = req.params.userId;
+    const clientId = req.params.clientId; // Use req.params.clientId here
+    const appointmentId = req.params.appointmentId;
+    const { status } = req.body;
+
+    try {
+      const filter = {
+        _id: new ObjectId(userId),
+        "appointments.appointmentId": appointmentId,
+      };
+      const filter2 = {
+        _id: new ObjectId(clientId),
+        "appointments.appointmentId": appointmentId,
+      };
+      console.log("userId:", userId);
+      console.log("clientId:", clientId);
+      console.log("appointmentId:", appointmentId);
+      console.log("status:", status);
+      const updateDoc = { $set: { "appointments.$.status": status } };
+      const updateDoc2 = { $set: { "appointments.$.status": status } };
+
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      const result2 = await usersCollection.updateOne(filter2, updateDoc2);
+
+      if (result.modifiedCount > 0 || result2.modifiedCount > 0) {
+        res
+          .status(200)
+          .json({ message: "Appointment status updated successfully" });
+      } else {
+        res
+          .status(404)
+          .json({ error: "Appointment not found or status not updated" });
+      }
+    } catch (error) {
+      res.status(500).json({ error: "Error updating appointment status" });
+    }
+  }
+);
+
+router.patch("/updateAppointment2/:userId/:appointmentId", async (req, res) => {
+  const userId = req.params.userId;
+  const appointmentId = req.params.appointmentId;
+  const { status } = req.body;
+
+  try {
+    const filter = {
+      _id: new ObjectId(userId),
+      "appointments.appointmentId": appointmentId,
+    };
+    const updateDoc = { $set: { "appointments.$.status": status } };
+    const result = await usersCollection.updateOne(filter, updateDoc);
+
+    if (result.modifiedCount > 0 || result2.modifiedCount > 0) {
+      res
+        .status(200)
+        .json({ message: "Appointment status updated successfully" });
+    } else {
+      res
+        .status(404)
+        .json({ error: "Appointment not found or status not updated" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Error updating appointment status" });
+  }
+});
+
 router.get("/appointment_details/:userId/:appointmentId", async (req, res) => {
   const userId = req.params.userId;
   const appointmentId = req.params.appointmentId;
@@ -400,6 +509,7 @@ router.patch("/approved/:id", async (req, res) => {
   const result = await usersCollection.updateOne(filter, updateDoc);
   res.send(result);
 });
+
 router.patch("/denied/:id", async (req, res) => {
   const id = req.params.id;
   console.log(id);
