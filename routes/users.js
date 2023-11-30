@@ -3,7 +3,7 @@ const router = express.Router();
 const client = require("../database/db");
 const { ObjectId } = require("mongodb");
 const bcrypt = require("bcrypt");
-const cors = require('cors');
+const cors = require("cors");
 const app = express();
 
 // Use CORS middleware
@@ -18,23 +18,22 @@ router.get("/", async (req, res) => {
 
 router.get("/provider", async (req, res) => {
   const query = { user_type: "Service Provider" };
-
   const result = await usersCollection.find(query).limit(8).toArray();
   res.send(result);
 });
 
 router.get("/alluser", async (req, res) => {
-  const query = { user_type: "user" }
+  const query = { user_type: "User" };
 
-  const result = await usersCollection.find(query).toArray()
-  res.send(result)
-})
+  const result = await usersCollection.find(query).toArray();
+  res.send(result);
+});
 router.get("/allprovider", async (req, res) => {
-  const query = { user_type: "provider" }
+  const query = { user_type: "Service Provider" };
 
-  const result = await usersCollection.find(query).toArray()
-  res.send(result)
-})
+  const result = await usersCollection.find(query).toArray();
+  res.send(result);
+});
 
 router.get("/provider/:type", async (req, res) => {
   const type = req.params.type;
@@ -223,53 +222,31 @@ router.post("/users/googlelogin", async (req, res) => {
 
 router.get("/admin/:email", async (req, res) => {
   const email = req.params.email;
-
-
-  const query = { user_email: email }
-
-
+  const query = { user_email: email };
   const user = await usersCollection.findOne(query);
-
-
-  const result = { admin: user?.user_type === "admin" }
-
-
+  const result = { admin: user?.user_type === "admin" };
   res.send(result);
 });
-router.get("/provider/:email", async (req, res) => {
+router.get("/provider2/:email", async (req, res) => {
   const email = req.params.email;
-
-
-  const query = { user_email: email }
-
-
+  const query = { user_email: email, user_type: "Service Provider" };
   const user = await usersCollection.findOne(query);
-
-
-  const result = { provider: user?.user_type === "provider" }
-
-
-  res.send(result);
+  const result = { provider: !!user }; // Set to true if user is found, false if not
+  res.json(result);
 });
+
+// Your API route (assuming it's part of a larger Express app)
 router.get("/user/:email", async (req, res) => {
-  const email = req.params.email;
+  try {
+    const email = req.params.email;
+    const query = { user_email: email, user_type: "user" };
+    const user = await usersCollection.findOne(query);
+    const result = { user: !!user };
+    res.json(result);
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 
-
-  const query = { user_email : email }
-
-
-  const user = await usersCollection.findOne(query);
-
-
-
-  const result = { User: user?.user_type === "user" }
-
-  res.send(result)
-  
-})
-
-
-
-
-module.exports = router
-
+module.exports = router;
