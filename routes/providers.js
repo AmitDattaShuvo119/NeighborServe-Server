@@ -5,6 +5,8 @@ const client = require("../database/db");
 const { ObjectId } = require("mongodb");
 
 const usersCollection = client.db("NeighborServe").collection("UsersData");
+const ChatsCollection = client.db("NeighborServe").collection("Chats"); // Update with your actual database and collection names
+const msgCollection = client.db("NeighborServe").collection("Messages");
 
 router.get("/api/:id/:category", async (req, res) => {
   const id = req.params.id; // Use req.params.id to get the id from route parameters
@@ -157,23 +159,22 @@ router.get("/providers/:id/:category", async (req, res) => {
   res.send(dataArrayUpdated);
 });
 
-
 router.get("/getDistance/:userId/:proId", async (req, res) => {
   try {
     const userId = req.params.userId;
     const proId = req.params.proId;
     const filter = { _id: new ObjectId(userId) };
-    const filter2 = { _id: new ObjectId(proId) }; 
-    const userData = await usersCollection.find(filter).toArray(); 
-    const proData = await usersCollection.find(filter2).toArray(); 
+    const filter2 = { _id: new ObjectId(proId) };
+    const userData = await usersCollection.find(filter).toArray();
+    const proData = await usersCollection.find(filter2).toArray();
     const userLat = userData[0].user_lat;
     const userLon = userData[0].user_lon;
     const userLocation = userData[0].user_location;
     const proLat = proData[0].user_lat;
     const proLon = proData[0].user_lon;
     const proLocation = proData[0].user_location;
-    const uimg=userData[0].user_img;
-    const pimg=proData[0].user_img;
+    const uimg = userData[0].user_img;
+    const pimg = proData[0].user_img;
 
     function toRadians(degrees) {
       return degrees * (Math.PI / 180);
@@ -216,17 +217,13 @@ router.get("/getDistance/:userId/:proId", async (req, res) => {
       userLocation,
       proLocation,
       uimg,
-      pimg
-      
-
+      pimg,
     });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-
 
 router.get("/getId/:userEmail", async (req, res) => {
   const email = req.params.userEmail;
@@ -237,6 +234,9 @@ router.get("/getId/:userEmail", async (req, res) => {
 
 router.get("/providersProfile", async (req, res) => {
   const id = req.query.id;
+  if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+    return res.status(400).send("Invalid ObjectId format");
+  }
   const filter = { _id: new ObjectId(id) };
   const result = await usersCollection.find(filter).toArray();
   res.send(result);
@@ -427,7 +427,6 @@ router.get("/view_appointment/:userId", async (req, res) => {
   }
 });
 
-
 // router.get("/request_count/:userId", async (req, res) => {
 //   const id = req.params.userId;
 //   const filter = { _id: new ObjectId(id) };
@@ -445,7 +444,6 @@ router.get("/view_appointment/:userId", async (req, res) => {
 //     res.status(404).json({ error: "User not found" });
 //   }
 // });
-
 
 router.patch(
   "/updateAppointment/:userId/:clientId/:appointmentId",
@@ -547,7 +545,7 @@ router.delete(
   "/cancel_appointment/:userId/:appointmentId",
   async (req, res) => {
     const userId = req.params.userId;
-    console.log("user id: "+userId);
+    console.log("user id: " + userId);
     const appointmentId = req.params.appointmentId;
     const filter = { _id: new ObjectId(userId) };
     const update = {
@@ -564,9 +562,12 @@ router.delete(
         );
 
         if (appointment) {
-          const userId2 = userId === appointment.pro_id ? appointment.user_id : appointment.pro_id;
+          const userId2 =
+            userId === appointment.pro_id
+              ? appointment.user_id
+              : appointment.pro_id;
 
-          console.log("pro id: "+userId2);
+          console.log("pro id: " + userId2);
 
           const filter2 = { _id: new ObjectId(userId2) };
           const update2 = {
@@ -615,6 +616,375 @@ router.patch("/denied/:id", async (req, res) => {
 
   const result = await usersCollection.updateOne(filter, updateDoc);
   res.send(result);
+});
+//Salam
+//Socket Implementation
+// const { socket } = require("socket.io");
+
+let Users = [];
+const io = require("socket.io")(8080, {
+  cors: {
+    origin: "http://localhost:5173",
+  },
+});
+io.on("connection", (socket) => {
+  console.log("User Connected", socket.id);
+  socket.on("addUser", (userId) => {
+    console.log(
+      "Received 'addUser' event from",
+      socket.id,
+      "with userId:",
+      userId
+    );
+    const isUserExist = Users.find((user) => user.userId === userId);
+    if (!isUserExist) {
+      const User = { userId, socketId: socket.id };
+      Users.push(User);
+      console.log("Updated Users list:", Users);
+      io.emit("getUsers", Users);
+    }
+  });
+
+  socket?.on('sendMessage',async({senderId,receiverId,message,conversationId})=>{
+    const receiver= Users.find(user=>user.userId=== receiverId);
+    const sender=Users.find(user=>user.userId=== senderId);
+    console.log("Sender: ",sender,"receiver",receiver);
+    const user=await usersCollection.findOne(new ObjectId(senderId));
+    console.log("User",user);
+    if(receiver){
+      io.to(receiver.socketId).to(sender.socketId).emit('getMessage',{
+        senderId,
+        message,
+        conversationId,
+        receiverId,
+        user:{id:user._id,name:user.user_fullname,email:user.user_email}
+      })
+    }
+  }) 
+  socket?.on("disconnect", () => {
+    Users = Users.filter((user) => user.socketId !== socket.id);
+    console.log("Updated Users list after disconnect:", Users);
+ 
+    io.emit("getUsers", Users);
+  });
+});
+
+
+
+router.get("/service_history", async (req, res) => {
+  try {
+    const serviceCollection = client
+      .db("NeighborServe")
+      .collection("serviceHistory");
+    const serviceHistory = await serviceCollection.find({}).limit(10).toArray();
+    res.json(serviceHistory);
+  } catch (error) {
+    res.status(500).json({ error: "Error fetching data" });
+  }
+});
+
+router.post("/conversations", async (req, res) => {
+  try {
+    const { senderId, receiverId } = req.body;
+    console.log("Request Body:", req.body); // Add this line for logging
+    console.log("SenderId:", senderId); // Add this line for logging
+    console.log("ReceiverId:", receiverId); // Add this line for logging // Add this line for logging
+    if (!senderId || !receiverId) {
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid request body" });
+    }
+
+    const result = await ChatsCollection.insertOne({
+      members: [senderId, receiverId],
+      timestamp: new Date(),
+    });
+
+    res.status(200).json({ success: true, insertedId: result.insertedId });
+  } catch (error) {
+    console.error("Error creating chat:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+router.get("/conversations/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
+      return res.status(400).send("Invalid ObjectId format");
+    }
+    console.log("Requested userId:", userId);
+
+    // Find conversations where the provided userId is in the members array
+    const conversations = await ChatsCollection.find({
+      members: { $in: [userId] },
+    }).toArray();
+
+    const conversationUserData = await Promise.all(
+      conversations.map(async (conversation) => {
+        // Find the receiver's ID in the members array
+        const receiverId = conversation.members.find(
+          (member) => member !== userId
+        );
+
+        // Log the receiverId
+        console.log("ReceiverId:", receiverId);
+
+        // Convert receiverId to ObjectId
+        const receiverObjectId = new ObjectId(receiverId);
+
+        // Log the receiverObjectId
+        console.log("ReceiverObjectId:", receiverObjectId);
+
+        // Find the user data using the receiver's ObjectId
+        const user = await usersCollection.findOne({ _id: receiverObjectId });
+
+        // Log the user data
+        console.log("User Data Of Conversation:", user);
+
+        // Return an object with user information
+        return {
+          user: {
+            email: user?.user_email,
+            name: user?.user_fullname,
+            receiverId: user?._id,
+          },
+          conversationId: conversation?._id,
+        };
+      })
+    );
+
+    res.status(200).json(conversationUserData);
+    console.log("conversationUserData", conversationUserData);
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+// router.get('/conversations/:userId', async (req, res) => {
+//   try {
+//     const userId = req.params.userId;
+//     console.log('Requested userId:', userId);
+
+//     // Find conversations where the provided userId is in the members array
+//     const conversations = await conversationsCollection.find({ members: { $in: [userId] } }).toArray();
+
+//     const conversationUserData = await Promise.all(conversations.map(async (conversation) => {
+//       // Find the receiver's ID in the members array
+//       const receiverId = conversation.members.find((member) => member !== userId);
+
+//       // Convert receiverId to ObjectId
+//       const receiverObjectId = new ObjectId(receiverId);
+
+//       // Find the user data using the receiver's ObjectId
+//       const user = await usersCollection.findOne({ _id: receiverObjectId });
+
+//       console.log('User Data:', user);
+
+//       // Return an object with user information
+//       return {
+//         user: {
+//           email: user?.email,
+//           name: user?.user_fullname,
+//           conversationId: user?._id,
+//         },
+//       };
+//     }));
+
+//     res.status(200).json(conversationUserData);
+//   } catch (error) {
+//     console.error('Error:', error);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// });
+
+// const conversationsCollection = client.db("NeighborServe").collection("Chats");
+// // const usersCollection = client.db("NeighborServe").collection("userCollection");
+
+// router.get('/conversations/:userId', async (req, res) => {
+//   try {
+//     const userId = req.params.userId;
+//     console.log('Requested userId:', userId);
+
+//     // Convert userId to ObjectId
+//     const userIdObjectId = new ObjectId(userId);
+
+//     // Find conversations where the provided userId is in the members array
+//     const conversations = await conversationsCollection.find({ members: { $in: [userIdObjectId] } }).toArray();
+
+//     // Fetch user data for each conversation
+//     const conversationUserData = await Promise.all(conversations.map(async (conversation) => {
+//       if (!conversation || !conversation.members) {
+//         console.warn('Invalid conversation object:', conversation);
+//         return null;
+//       }
+
+//       console.log('Conversation:', conversation);
+
+//       const receiverId = conversation.members.find((member) => member !== userId);
+
+//       if (!receiverId) {
+//         console.warn(`ReceiverId not found for conversation: ${conversation._id}`);
+//         return null;
+//       }
+
+//       const receiverObjectId = new ObjectId(receiverId);
+//       console.log('Receiver ObjectId:', receiverObjectId);
+
+//       const user = await usersCollection.findOne({ _id: receiverObjectId });
+
+//       if (!user) {
+//         console.warn(`User not found for conversationId: ${receiverObjectId}`);
+//         return null;
+//       }
+
+//       return { user: { email: user.user_email, name: user.user_fullName, conversationId: receiverObjectId.user_id } };
+//     }));
+
+//     // Filter out null values before sending the response
+//     const filteredUserData = conversationUserData.filter((data) => data !== null);
+
+//     res.status(200).json(filteredUserData);
+//   } catch (error) {
+//     console.error('Error:', error);
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// });
+
+router.post("/message", async (req, res) => {
+  try {
+    const { conversationId, senderId, message, receiverId = "" } = req.body;
+    console.log(conversationId, senderId, message, receiverId);
+
+    console.log("Received request body:", req.body);
+    if (!senderId || !message) {
+      return res.status(400).send("Please fill all required fields");
+    }
+
+    // const msgCollection = client.db("NeighborServe").collection("Messages");
+    if (conversationId === "new" && receiverId) {
+      const newConversation = await ChatsCollection.insertOne({
+        members: [senderId, receiverId],
+      });
+      console.log("New Conversation", newConversation);
+
+      const newMessage = {
+        conversationId: newConversation.insertedId,
+        senderId,
+        message,
+        receiverId,
+      };
+
+      await msgCollection.insertOne(newMessage);
+      return res.status(200).send("Message sent successfully");
+    } else if (!conversationId && !receiverId) {
+      return res.status(400).send("Please fill all required fields");
+    }
+
+    const newMessage = await msgCollection.insertOne({
+      conversationId: new ObjectId(conversationId),
+      senderId: new ObjectId(senderId),
+      message,
+      receiverId: new ObjectId(receiverId),
+    });
+
+    res.status(200).json(newMessage); // Return the inserted message
+  } catch (error) {
+    return res.status(400).send(error);
+  }
+});
+
+router.get("/message/:conversationId", async (req, res) => {
+  try {
+    const checkMessage = async (conversationId) => {
+      const messages = await msgCollection
+        .find({ conversationId: new ObjectId(conversationId) })
+        .toArray();
+
+      const messageUserData = await Promise.all(
+        messages.map(async (message) => {
+          console.log("Fetching user for message:", message);
+          console.log("Fetched receiverId:", message?.receiverId);
+
+          const user = await usersCollection.findOne({
+            _id: new ObjectId(message?.senderId),
+          });
+
+          console.log("Fetching user for message:", message);
+          console.log("user:", user);
+
+          return {
+            user: {
+              id: user._id,
+              email: user?.user_email,
+              name: user?.user_fullname,
+              // Include conversationId,
+            },
+            message: message?.message,
+            conversationId: message?.conversationId,
+            receiverId: message?.receiverId,
+          };
+        })
+      );
+      res.status(200).json(messageUserData);
+    };
+
+    const conversationId = req.params.conversationId;
+
+    // if (!/^[0-9a-fA-F]{24}$/.test(new ObjectId(conversationId))) {
+    //   return res.status(400).send("Invalid ObjectId format");
+    // }
+    if (conversationId === "new") {
+      const checkConversation = await ChatsCollection.find({
+        members: { $all: [req.query.senderId, req.query.receiverId] },
+      }).toArray();
+      if (checkConversation.length > 0) {
+        checkMessage(checkConversation[0]._id);
+      } else {
+        return res.status(200).json([]);
+      }
+    } else {
+      checkMessage(conversationId);
+    }
+  } catch (error) {
+    console.log("Error", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+router.get("/users/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    if (!/^[0-9a-fA-F]{24}$/.test(userId)) {
+      return res.status(400).send("Invalid ObjectId format");
+    }
+
+    const users = await usersCollection
+      .find({ _id: { $ne: userId } })
+      .limit(100)
+      .toArray();
+
+    // Use Promise.all with map
+    const usersData = await Promise.all(
+      users.map(async (user) => {
+        return {
+          user: {
+            email: user.user_email,
+            name: user.user_fullname,
+            receiverId: user._id,
+            // Assuming _id is an ObjectId, convert it to a string
+          },
+          UserId: user._id,
+        };
+      })
+    );
+
+    res.status(200).json(usersData);
+  } catch (error) {
+    console.log("Error", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 module.exports = router;
