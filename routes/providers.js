@@ -1,6 +1,8 @@
 const express = require("express");
 const axios = require("axios");
 const router = express.Router();
+const multer = require("multer");
+const path = require("path");
 const client = require("../database/db");
 const { ObjectId } = require("mongodb");
 
@@ -157,23 +159,22 @@ router.get("/providers/:id/:category", async (req, res) => {
   res.send(dataArrayUpdated);
 });
 
-
 router.get("/getDistance/:userId/:proId", async (req, res) => {
   try {
     const userId = req.params.userId;
     const proId = req.params.proId;
     const filter = { _id: new ObjectId(userId) };
-    const filter2 = { _id: new ObjectId(proId) }; 
-    const userData = await usersCollection.find(filter).toArray(); 
-    const proData = await usersCollection.find(filter2).toArray(); 
+    const filter2 = { _id: new ObjectId(proId) };
+    const userData = await usersCollection.find(filter).toArray();
+    const proData = await usersCollection.find(filter2).toArray();
     const userLat = userData[0].user_lat;
     const userLon = userData[0].user_lon;
     const userLocation = userData[0].user_location;
     const proLat = proData[0].user_lat;
     const proLon = proData[0].user_lon;
     const proLocation = proData[0].user_location;
-    const uimg=userData[0].user_img;
-    const pimg=proData[0].user_img;
+    const uimg = userData[0].user_img;
+    const pimg = proData[0].user_img;
 
     function toRadians(degrees) {
       return degrees * (Math.PI / 180);
@@ -216,17 +217,13 @@ router.get("/getDistance/:userId/:proId", async (req, res) => {
       userLocation,
       proLocation,
       uimg,
-      pimg
-      
-
+      pimg,
     });
   } catch (error) {
     console.error("Error:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-
 
 router.get("/getId/:userEmail", async (req, res) => {
   const email = req.params.userEmail;
@@ -427,7 +424,6 @@ router.get("/view_appointment/:userId", async (req, res) => {
   }
 });
 
-
 // router.get("/request_count/:userId", async (req, res) => {
 //   const id = req.params.userId;
 //   const filter = { _id: new ObjectId(id) };
@@ -445,7 +441,6 @@ router.get("/view_appointment/:userId", async (req, res) => {
 //     res.status(404).json({ error: "User not found" });
 //   }
 // });
-
 
 router.patch(
   "/updateAppointment/:userId/:clientId/:appointmentId",
@@ -547,7 +542,7 @@ router.delete(
   "/cancel_appointment/:userId/:appointmentId",
   async (req, res) => {
     const userId = req.params.userId;
-    console.log("user id: "+userId);
+    console.log("user id: " + userId);
     const appointmentId = req.params.appointmentId;
     const filter = { _id: new ObjectId(userId) };
     const update = {
@@ -564,9 +559,12 @@ router.delete(
         );
 
         if (appointment) {
-          const userId2 = userId === appointment.pro_id ? appointment.user_id : appointment.pro_id;
+          const userId2 =
+            userId === appointment.pro_id
+              ? appointment.user_id
+              : appointment.pro_id;
 
-          console.log("pro id: "+userId2);
+          console.log("pro id: " + userId2);
 
           const filter2 = { _id: new ObjectId(userId2) };
           const update2 = {
@@ -613,6 +611,47 @@ router.patch("/denied/:id", async (req, res) => {
     },
   };
 
+  const result = await usersCollection.updateOne(filter, updateDoc);
+  res.send(result);
+});
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+router.post("/uploadImg", upload.single("image"), async (req, res) => {
+  try {
+    // Upload image to ImgBB using Axios
+    const response = await axios.post(
+      "https://api.imgbb.com/1/upload",
+      `key=c517af6130b3e42c451a633ca7f2c403&image=${req.file.buffer.toString("base64")}`,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    // Send back the ImgBB response to the client
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
+router.patch("/updateProfile/:userId", async (req, res) => {
+  const id = req.params.userId;
+  const { user_fullname, user_email, user_phone, user_img } = req.body;
+  const filter = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $set: {
+      user_fullname,
+      user_email,
+      user_phone,
+      user_img,
+    },
+  };
   const result = await usersCollection.updateOne(filter, updateDoc);
   res.send(result);
 });
