@@ -322,47 +322,39 @@ router.get("/appointment", async (req, res) => {
   // Create an array of all possible time slots you want to consider
   const allTimeSlots = [
     "Choose a time slot",
-    "9:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "1:00 PM",
-    "2:00 PM",
-    "3:00 PM",
-    "4:00 PM",
-    "5:00 PM",
-    "6:00 PM",
-    "7:00 PM",
-    "8:00 PM",
-    "9:00 PM",
-    "10:00 PM",
+    "8:00",
+    "9:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+    "18:00",
+    "19:00",
+    "20:00",
+    "21:00",
+    "22:00",
   ];
 
-  // Get the current time
-  const currentTime = new Date();
-  const currentHour = currentTime.getHours();
-  const currentMinutes = currentTime.getMinutes();
-
-  // Iterate through the appointments and remove already appointed time slots
-  for (const appointment of appointments) {
-    const appointmentTime = appointment.appointmentTime;
-    const [hour, minutes] = appointmentTime.split(":");
-    const appointmentHour = parseInt(hour, 10);
-    const appointmentMinutes = parseInt(minutes, 10);
-
-    if (
-      appointmentHour < currentHour ||
-      (appointmentHour === currentHour && appointmentMinutes <= currentMinutes)
-    ) {
-      // If the appointment has already passed, remove it from available time slots
-      const index = allTimeSlots.indexOf(appointmentTime);
-      if (index !== -1) {
-        allTimeSlots.splice(index, 1);
+  const now = new Date();
+  const hours = now.getHours();
+  const formattedTimeArray = allTimeSlots
+    .filter((time) => parseInt(time) > hours)
+    .map((time) => {
+      if (parseInt(time) > 12) {
+        return (parseInt(time) - 12) + " pm";
+      } else {
+        return parseInt(time) + " am";
       }
-    }
-  }
-
-  res.json({ availableTimeSlots: allTimeSlots });
+    });
+  
+    const appointmentTime = appointments.map(app => app.appointmentTime);
+    // console.log(appointmentTime);
+    const timeSlot = formattedTimeArray.filter(time => !appointmentTime.includes(time));
+    res.json({ availableTimeSlots: timeSlot });
 });
 
 router.post("/create-appointment/:userId", async (req, res) => {
@@ -623,7 +615,9 @@ router.post("/uploadImg", upload.single("image"), async (req, res) => {
     // Upload image to ImgBB using Axios
     const response = await axios.post(
       "https://api.imgbb.com/1/upload",
-      `key=c517af6130b3e42c451a633ca7f2c403&image=${req.file.buffer.toString("base64")}`,
+      `key=c517af6130b3e42c451a633ca7f2c403&image=${req.file.buffer.toString(
+        "base64"
+      )}`,
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
@@ -638,7 +632,6 @@ router.post("/uploadImg", upload.single("image"), async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 
 router.patch("/updateProfile/:userId", async (req, res) => {
   const id = req.params.userId;
