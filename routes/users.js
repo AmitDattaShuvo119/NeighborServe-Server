@@ -165,7 +165,6 @@ router.post("/providersignup", async (req, res) => {
     user_serviceDetails,
     user_respondTime,
   } = req.body;
-  console.log(req.body);
 
   const query = { user_email };
   const existingUser = await usersCollection.findOne(query);
@@ -239,7 +238,8 @@ router.get("/provider2/:email", async (req, res) => {
 router.get("/user/:email", async (req, res) => {
   try {
     const email = req.params.email;
-    const query = { user_email: email, user_type: "user" };
+    console.log(email);
+    const query = { user_email: email, user_type: "User" };
     const user = await usersCollection.findOne(query);
     const result = { user: !!user };
     res.json(result);
@@ -247,6 +247,35 @@ router.get("/user/:email", async (req, res) => {
     console.error("Error fetching user data:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }
+});
+
+router.post("/addFavoriteProvider", async (req, res) => {
+  try {
+    const { userEmail, providerId } = req.body;
+    const email = { user_email: userEmail };
+    // Find the user by ID and update the favoriteProviders array
+    const updatedUser = await usersCollection.findOneAndUpdate(
+      email,
+      { $addToSet: { favoriteProviders: providerId } },
+      { new: true }
+    );
+    console.log("irfan");
+    res.send(updatedUser);
+  } catch (error) {
+    console.error("Error adding favorite provider:", error);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+  }
+});
+
+router.get("/favProvider", async (req, res) => {
+  const email = "irfan007@gmail.com";
+
+  const userEmali = {
+    user_email: email,
+  };
+
+  const result = await usersCollection.findOne(userEmali);
+ res.send(result)
 });
 
 module.exports = router;
