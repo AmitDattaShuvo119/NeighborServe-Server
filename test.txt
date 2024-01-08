@@ -1,0 +1,18 @@
+S → ACB | CbB | Ba 
+A → da | BC 
+B → BB | g | ∈ 
+C → DB | h | ∈ 
+D → 1 | 2 | 3 | ∈
+_____________________________
+
+First(S) = { First(A), First(C), First(B) } = { d, g, 1, 2, 3, h, b, a }
+First(A) = { d, First(B) } = { d, g, First(C) } = { d, g, 1, 2, 3, h }
+First(B) = { First(B), g, ∈ } = { g, ∈ }
+First(C) = { First(D), h, ∈ } = { 1, 2, 3, h, First(B) } = { 1, 2, 3, h, g, ∈ }
+First(D) = { 1, 2, 3, ∈ }
+
+Follow(S) = { $ }
+Follow(A) = { First(C) } = { 1, 2, 3, h, g }
+Follow(B) = { Follow(S), a, First(C), Follow(C) } = { $, a, g, c, 1, 2, 3, h, g }
+Follow(C) = { First(B), c, Follow(A) } = { g, c, 1, 2, 3, h, g }
+Follow(D) = { First(B) } = { g }
