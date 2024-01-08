@@ -307,8 +307,10 @@ router.patch("/verification/:userId", async (req, res) => {
   res.send(result);
 });
 
-router.get("/appointment", async (req, res) => {
-  const userId = req.query.id;
+router.get("/appointment/:id/:appDate", async (req, res) => {
+  const userId = req.params.id;
+  const appDate = req.params.appDate;
+  console.log("date: ", appDate);
   const filter = { _id: new ObjectId(userId) };
   const userDocument = await usersCollection.findOne(filter);
 
@@ -321,7 +323,6 @@ router.get("/appointment", async (req, res) => {
 
   // Create an array of all possible time slots you want to consider
   const allTimeSlots = [
-    "Choose a time slot",
     "8:00",
     "9:00",
     "10:00",
@@ -341,20 +342,85 @@ router.get("/appointment", async (req, res) => {
 
   const now = new Date();
   const hours = now.getHours();
-  const formattedTimeArray = allTimeSlots
-    .filter((time) => parseInt(time) > hours)
+
+  const filteredTime = appointments
+    .filter((app) => app.appointmentDate === appDate)
+    .map((app) => ({
+      time: app.appointmentTime,
+    }));
+
+  const filteredTime2 = filteredTime.map((t) => t.time);
+
+  const t = filteredTime2.map((time) => {
+    // Check if the time contains a colon
+    if (time.includes(":")) {
+      return time; // If it does, leave it unchanged
+    } else {
+      // Extract numeric part
+      const numericPart = parseInt(time, 10);
+
+      // Check if the original time had "AM" or "PM"
+      const meridian = time.includes("pm")
+        ? "PM"
+        : time.includes("am")
+        ? "AM"
+        : "";
+      // Append ":00" and preserve the meridian
+      return `${numericPart}:00 ${meridian}`;
+    }
+  });
+
+  const adjustedTime = t.map((time) => {
+    if (time.toLowerCase().includes("pm")) {
+      const [hours, minutes] = time.split(":");
+      const adjustedHours = (parseInt(hours, 10) % 12) + 12;
+      return `${adjustedHours}:${minutes}`;
+    } else {
+      return time;
+    }
+  });
+  console.log("Adjusted Time:", adjustedTime);
+
+  // Function to extract time without meridian indicator ("am" or "pm")
+  const extractTimeWithoutMeridian = (time) =>
+    time.replace(/(am|pm)/i, "").trim();
+
+  // Apply the function to each element in the array
+  const filteredTimeWithoutMeridian = adjustedTime.map((time) =>
+    extractTimeWithoutMeridian(time)
+  );
+
+  console.log("filteredTime2:", filteredTimeWithoutMeridian);
+
+  const timeSlot = allTimeSlots.filter(
+    (time) => !filteredTimeWithoutMeridian.includes(time.trim())
+  );
+  console.log("time after filteration: ", timeSlot);
+
+  const formattedTimeArray = timeSlot
+    .filter((time) => {
+      const currentTime = new Date();
+      const day = currentTime.getDate().toString().padStart(2, "0");
+      const month = (currentTime.getMonth() + 1).toString().padStart(2, "0");
+      const year = currentTime.getFullYear();
+      const today = `${month}-${day}-${year}`;
+      
+      if (today === appDate) {
+        console.log(today +" x "+appDate);
+       return parseInt(time) > hours;
+      } else return true;
+      
+    })
     .map((time) => {
       if (parseInt(time) > 12) {
-        return (parseInt(time) - 12) + " pm";
+        return parseInt(time) - 12 + " pm";
       } else {
         return parseInt(time) + " am";
       }
     });
-  
-    const appointmentTime = appointments.map(app => app.appointmentTime);
-    // console.log(appointmentTime);
-    const timeSlot = formattedTimeArray.filter(time => !appointmentTime.includes(time));
-    res.json({ availableTimeSlots: timeSlot });
+  console.log("timeSlot:", formattedTimeArray);
+  console.log("_____");
+  res.json({ availableTimeSlots: formattedTimeArray });
 });
 
 router.post("/create-appointment/:userId", async (req, res) => {
