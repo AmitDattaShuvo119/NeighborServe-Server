@@ -36,7 +36,7 @@ io.on("connection", (socket) => {
 
   socket?.on(
     "sendMessage",
-    async ({ senderId, receiverId, message, conversationId }) => {
+    async ({ conversationId, senderId, message, receiverId }) => {
       const receiver = Users.find((user) => user.userId === receiverId);
       const sender = Users.find((user) => user.userId === senderId);
       console.log("Sender: ", sender, "receiver", receiver);
@@ -46,14 +46,15 @@ io.on("connection", (socket) => {
         io.to(receiver.socketId)
           .to(sender.socketId)
           .emit("getMessage", {
+            conversationId,
             senderId,
             message,
-            conversationId,
             receiverId,
             user: {
               id: user._id,
               name: user.user_fullname,
               email: user.user_email,
+              receiverId:receiverId,
             },
           });
       }
@@ -89,6 +90,19 @@ router.post("/conversations", async (req, res) => {
       return res
         .status(400)
         .json({ success: false, error: "Invalid request body" });
+    }
+
+    const existingConversation = await ChatsCollection.findOne({
+      members: { $all: [senderId, receiverId] },
+    });
+
+    if (existingConversation) {
+      console.log("Conversation already exists:", existingConversation);
+      return res.status(200).json({
+        success: true,
+        existing: true,
+        conversationId: existingConversation._id,
+      });
     }
 
     const result = await ChatsCollection.insertOne({
@@ -144,6 +158,7 @@ router.get("/conversations/:userId", async (req, res) => {
             email: user?.user_email,
             name: user?.user_fullname,
             receiverId: user?._id,
+            img:user?.user_img,
           },
           conversationId: conversation?._id,
         };
@@ -157,6 +172,8 @@ router.get("/conversations/:userId", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+
 
 router.post("/message", async (req, res) => {
   try {
@@ -225,6 +242,7 @@ router.get("/message/:conversationId", async (req, res) => {
               id: user._id,
               email: user?.user_email,
               name: user?.user_fullname,
+              img:user?.user_img,
               // Include conversationId,
             },
             message: message?.message,
@@ -237,7 +255,7 @@ router.get("/message/:conversationId", async (req, res) => {
     };
 
     const conversationId = req.params.conversationId;
-
+   
     // if (!/^[0-9a-fA-F]{24}$/.test(new ObjectId(conversationId))) {
     //   return res.status(400).send("Invalid ObjectId format");
     // }
@@ -253,11 +271,15 @@ router.get("/message/:conversationId", async (req, res) => {
     } else {
       checkMessage(conversationId);
     }
+
+    
   } catch (error) {
     console.log("Error", error);
     res.status(500).send("Internal Server Error");
   }
 });
+
+
 
 router.get("/users/:userId", async (req, res) => {
   try {
@@ -279,6 +301,7 @@ router.get("/users/:userId", async (req, res) => {
             email: user.user_email,
             name: user.user_fullname,
             receiverId: user._id,
+            img:user?.user_img,
             // Assuming _id is an ObjectId, convert it to a string
           },
           UserId: user._id,
