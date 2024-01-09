@@ -1,6 +1,8 @@
 const express = require("express");
 const axios = require("axios");
 const router = express.Router();
+const multer = require("multer");
+const path = require("path");
 const client = require("../database/db");
 const { ObjectId } = require("mongodb");
 
@@ -310,8 +312,10 @@ router.patch("/verification/:userId", async (req, res) => {
   res.send(result);
 });
 
-router.get("/appointment", async (req, res) => {
-  const userId = req.query.id;
+router.get("/appointment/:id/:appDate", async (req, res) => {
+  const userId = req.params.id;
+  const appDate = req.params.appDate;
+  console.log("date: ", appDate);
   const filter = { _id: new ObjectId(userId) };
   const userDocument = await usersCollection.findOne(filter);
 
@@ -324,48 +328,104 @@ router.get("/appointment", async (req, res) => {
 
   // Create an array of all possible time slots you want to consider
   const allTimeSlots = [
-    "Choose a time slot",
-    "9:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "1:00 PM",
-    "2:00 PM",
-    "3:00 PM",
-    "4:00 PM",
-    "5:00 PM",
-    "6:00 PM",
-    "7:00 PM",
-    "8:00 PM",
-    "9:00 PM",
-    "10:00 PM",
+    "8:00",
+    "9:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+    "18:00",
+    "19:00",
+    "20:00",
+    "21:00",
+    "22:00",
   ];
 
-  // Get the current time
-  const currentTime = new Date();
-  const currentHour = currentTime.getHours();
-  const currentMinutes = currentTime.getMinutes();
+  const now = new Date();
+  const hours = now.getHours();
 
-  // Iterate through the appointments and remove already appointed time slots
-  for (const appointment of appointments) {
-    const appointmentTime = appointment.appointmentTime;
-    const [hour, minutes] = appointmentTime.split(":");
-    const appointmentHour = parseInt(hour, 10);
-    const appointmentMinutes = parseInt(minutes, 10);
+  const filteredTime = appointments
+    .filter((app) => app.appointmentDate === appDate)
+    .map((app) => ({
+      time: app.appointmentTime,
+    }));
 
-    if (
-      appointmentHour < currentHour ||
-      (appointmentHour === currentHour && appointmentMinutes <= currentMinutes)
-    ) {
-      // If the appointment has already passed, remove it from available time slots
-      const index = allTimeSlots.indexOf(appointmentTime);
-      if (index !== -1) {
-        allTimeSlots.splice(index, 1);
-      }
+  const filteredTime2 = filteredTime.map((t) => t.time);
+
+  const t = filteredTime2.map((time) => {
+    // Check if the time contains a colon
+    if (time.includes(":")) {
+      return time; // If it does, leave it unchanged
+    } else {
+      // Extract numeric part
+      const numericPart = parseInt(time, 10);
+
+      // Check if the original time had "AM" or "PM"
+      const meridian = time.includes("pm")
+        ? "PM"
+        : time.includes("am")
+        ? "AM"
+        : "";
+      // Append ":00" and preserve the meridian
+      return `${numericPart}:00 ${meridian}`;
     }
-  }
+  });
 
-  res.json({ availableTimeSlots: allTimeSlots });
+  const adjustedTime = t.map((time) => {
+    if (time.toLowerCase().includes("pm")) {
+      const [hours, minutes] = time.split(":");
+      const adjustedHours = (parseInt(hours, 10) % 12) + 12;
+      return `${adjustedHours}:${minutes}`;
+    } else {
+      return time;
+    }
+  });
+  console.log("Adjusted Time:", adjustedTime);
+
+  // Function to extract time without meridian indicator ("am" or "pm")
+  const extractTimeWithoutMeridian = (time) =>
+    time.replace(/(am|pm)/i, "").trim();
+
+  // Apply the function to each element in the array
+  const filteredTimeWithoutMeridian = adjustedTime.map((time) =>
+    extractTimeWithoutMeridian(time)
+  );
+
+  console.log("filteredTime2:", filteredTimeWithoutMeridian);
+
+  const timeSlot = allTimeSlots.filter(
+    (time) => !filteredTimeWithoutMeridian.includes(time.trim())
+  );
+  console.log("time after filteration: ", timeSlot);
+
+  const formattedTimeArray = timeSlot
+    .filter((time) => {
+      const currentTime = new Date();
+      const day = currentTime.getDate().toString().padStart(2, "0");
+      const month = (currentTime.getMonth() + 1).toString().padStart(2, "0");
+      const year = currentTime.getFullYear();
+      const today = `${month}-${day}-${year}`;
+      
+      if (today === appDate) {
+        console.log(today +" x "+appDate);
+       return parseInt(time) > hours;
+      } else return true;
+      
+    })
+    .map((time) => {
+      if (parseInt(time) > 12) {
+        return parseInt(time) - 12 + " pm";
+      } else {
+        return parseInt(time) + " am";
+      }
+    });
+  console.log("timeSlot:", formattedTimeArray);
+  console.log("_____");
+  res.json({ availableTimeSlots: formattedTimeArray });
 });
 
 router.post("/create-appointment/:userId", async (req, res) => {
@@ -619,5 +679,46 @@ router.patch("/denied/:id", async (req, res) => {
 });
 
 
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+router.post("/uploadImg", upload.single("image"), async (req, res) => {
+  try {
+    // Upload image to ImgBB using Axios
+    const response = await axios.post(
+      "https://api.imgbb.com/1/upload",
+      `key=c517af6130b3e42c451a633ca7f2c403&image=${req.file.buffer.toString(
+        "base64"
+      )}`,
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    // Send back the ImgBB response to the client
+    res.json(response.data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+router.patch("/updateProfile/:userId", async (req, res) => {
+  const id = req.params.userId;
+  const { user_fullname, user_email, user_phone, user_img } = req.body;
+  const filter = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $set: {
+      user_fullname,
+      user_email,
+      user_phone,
+      user_img,
+    },
+  };
+  const result = await usersCollection.updateOne(filter, updateDoc);
+  res.send(result);
+});
 
 module.exports = router;
