@@ -1,0 +1,31 @@
+.c-btn-container {
+    display: flex;
+    justify-content: space-between;
+    position: fixed;
+    top: 50%;
+    width: 100%;
+    transform: translateY(-50%);
+    padding: 0 10px;
+    box-sizing: border-box;
+  }
+
+.c-btn-round {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #F2F2F2; /* Add your desired background color */
+    border: none;
+    cursor: pointer;
+     /* Optional: Add a shadow for depth */
+  }
+
+  .c-btn-round:hover{
+    background-color: #d3d3d3;
+  }
+  .c-btn-round img {
+    width: 20px; /* Adjust the image width as needed */
+    height: 20px; /* Adjust the image height as needed */
+  }

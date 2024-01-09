@@ -1,0 +1,85 @@
+.l-container0 {
+  margin-top: 3%;
+  display: flex;
+  width: 1050px;
+  height: 450px;
+  background-image: url("./bg.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.l-container1 {
+  width: 60%;
+  border-top-left-radius: 15px;
+  border-bottom-left-radius: 15px;
+  background-color: rgba(0, 0, 0, 0, 5);
+  
+}
+
+.l-container2 {
+  width: 60%;
+  border-top-right-radius: 15px;
+  border-bottom-right-radius: 15px;
+  background-color: white;
+}
+
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.input-field {
+  width: 50%;
+  padding: 10px;
+  margin: 5px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+.l-r{
+  color:black;
+  transition: 0.3s;
+}
+.l-r:hover{
+  color: #570DF8;
+}
+
+a {
+  text-decoration: none;
+  color: blue;
+}
+
+
+.social-login {
+  margin-top: 20px;
+}
+
+.social-icons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.social-icon {
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+}
+.l-btn1{
+  background: none;
+  color: red;
+  transition: 1s;
+}
+.l-btn1:hover{
+  background-color: white;
+}

@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Include the "Fira Code" font in your CSS file */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300&display=swap');
+@font-face {
+    font-family: 'Söhne';
+    src: url('./TestSöhne-Buch.otf') format('opentype'); /* Use 'truetype' for TTF files */
+  }
+/* Apply the font to your text */
+.staggered-text {
+  /* font-family: 'Fira Code', monospace; */
+  font-family: "Söhne",  sans-serif; /* Use the 'Fira Code' font and specify 'monospace' as a fallback */
+}
+
+
+:root {
+    background-color: #fff;
+}
+
+.bs-container1 {
+    height: 400px;
+    background-size: cover;
+    background-repeat: no-repeat;
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.5);
+    background-blend-mode: multiply;
+    margin-top: 40px;
+    box-shadow: 0px 4px 4px rgba(207, 207, 207, 1);
+    transition: background-image 0.5s ease-in-out;
+}
+
+.bs-container2 {
+    color: #fff;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 100%;
+    font-size: 60px;
+    font-weight: bold;
+    text-shadow: 1px 1px 15px rgba(34, 33, 33, 1);
+
+}
+
+.bs-container3 {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    background-color: white;
+}
+
+.bs-container3>div {
+    font-size: 20px;
+    padding: 30px;
+    background-color: white;
+}
+
+
+.bs-vertical-line {
+    width: 2px;
+    /* Adjust the width of the line as needed */
+    height: 1000px;
+    /* Set the height to 100% to span the full height of the container */
+    background-color: rgb(185, 31, 31);
+    /* Line color */
+    margin-left: 2%;
+}
+
+.bs-container4 {
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: 17%;
+    margin-right: 10%;
+    flex-direction: column;
+}
+
+.bs-container4>div {
+    color: black;
+
+}
+
+.bs-container5 {
+    margin-left: 2.5%;
+
+    font-weight: bold;
+    font-size: 40px;
+
+}
+
+.bs-p1 {
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-style: italic;
+}
+
+
+
+
+
+/* Media Query for Tablets and Smaller Screens */
+@media (max-width: 768px) {
+    .bs-container1 {
+        height: 300px;
+        /* Adjust the height for smaller screens */
+        margin-top: 20px;
+        /* Adjust the margin for smaller screens */
+    }
+
+    .bs-container2 {
+        font-size: 40px;
+        /* Adjust font size for smaller screens */
+    }
+
+    .bs-p1 {
+        font-size: 14px;
+    }
+
+    .bs-container5 {
+        font-size: 30px;
+    }
+}
+
+/* Media Query for Mobile Phones */
+@media (max-width: 480px) {
+    .bs-container1 {
+        height: 200px;
+        /* Adjust the height for mobile screens */
+        margin-top: 10px;
+
+        /* Adjust the margin for mobile screens */
+        .p1 {
+            font-size: 12px;
+        }
+
+        .bs-container5 {
+            font-size: 20px;
+        }
+    }
+
+    .bs-container2 {
+        font-size: 30px;
+        /* Adjust font size for mobile screens */
+    }
+}

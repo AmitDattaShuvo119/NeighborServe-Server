@@ -1,0 +1,36 @@
+.icon-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    /* Show a pointer cursor on hover */
+}
+
+
+.pc-item-box{
+    
+    flex-direction: row;
+    left: 700%;
+    top: 100%;
+    transform: translateX(-50%);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    width: 377px;
+    height: 140px;
+    position: absolute;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+}
+.icon-container:hover .pc-item-box {
+    opacity: 1;
+    visibility: visible;
+}
+@media (max-width: 480px) {
+
+    .pp-container11{
+        width: 17px;
+        height: 19px;
+    }
+}

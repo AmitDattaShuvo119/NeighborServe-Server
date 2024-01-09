@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Söhne';
+  src: url('./TestSöhne-Buch.otf') format('opentype');
+  /* Use 'truetype' for TTF files */
+}
+
+.nav-container {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-container2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: white; /* Adjust as needed */
+  box-shadow: 0px 4px 4px rgba(207, 207, 207, 0.1);
+}
+
+.s-text {
+  font-family: "Söhne", sans-serif;
+}
+
+:root {
+  background-color: white;
+}
+
+body {
+  background-color: white;
+}
+
+.c1 {
+  text-decoration: none;
+  color: black;
+  transition: color 0.3s;
+}
+
+.c1:hover {
+  color: #4C40ED;
+}
+
+.c2 {
+  box-shadow: 0px 4px 4px rgba(207, 207, 207, 0.1);
+}
+
+.n-btn1 {
+  height: 40px;
+  width: 200px;
+  transition: color 0.7s;
+}
+
+.n-btn1:hover {
+  background-color: #190bd5;
+}
+
+/* tailwind.css or your component's style block */
+.text-black {
+  color: black !important;
+}

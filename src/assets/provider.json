@@ -1,0 +1,52 @@
+[
+    {
+      "id" : 1,
+      "name":"Mr.Salam",
+      "category": "Electrician",
+      "icon": "../src/assets/electrician.png"
+      
+    },
+    {
+      "id" : 2,
+      "name":"Mr.Shakib",
+      "category": "Plumber",
+      "icon": "../src/assets/plumber.png"
+      
+    },{
+      "id" : 3,
+      "name":"Mr.Tamim",
+      "category": "Cleaning",
+      "icon": "../src/assets/mop.png"
+      
+    },{
+      "id" : 4,
+      "name":"Mr.Rahim",
+      "category": "Moving",
+      "icon": "../src/assets/moving-truck.png"
+      
+    },{
+      "id" : 5,
+      "category": "Painter",
+      "name":"Mr.shuvo",
+      "icon": "../src/assets/painter.png"
+      
+    },{
+      "id" : 6,
+      "name":"Mr.Bulbul",
+      "category": "Repairing",
+      "icon": "../src/assets/mechanic.png"
+      
+    },{
+      "id" : 7,
+      "name":"Mr.Rahman",
+      "category": "Painter",
+      "icon": "../src/assets/painter.png"
+      
+    },{
+      "id" : 8,
+      "name":"Mr.Kalam",
+      "category": "Repairing",
+      "icon": "../src/assets/mechanic.png"
+      
+    }
+  ]

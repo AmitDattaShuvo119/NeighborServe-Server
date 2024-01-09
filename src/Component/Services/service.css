@@ -1,0 +1,55 @@
+.btn1 {
+    font-family: sans-serif;
+    width: 90px;
+    height: 40px;
+    font-size: 18px;
+    background-color: white;
+    color: #4C40ED;
+    border: 1px solid #4C40ED;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: background-color 0.3s cubic-bezier(0.42, 0, 0.58, 1), border-color 0.3s cubic-bezier(0.42, 0, 0.58, 1);
+    /* Add ease-out transition */
+}
+
+.btn1:hover {
+    background-color: #4C40ED;
+    color: white;
+}
+
+
+
+@media screen and (max-width: 480px) {
+    .btn1 {
+        font-size: 11px;
+        width: 50px;
+        height: 25px;
+    }
+
+    .s-con1 {
+        font-size: 15px;
+
+    }
+
+    .s-con2 {
+        display: none;
+    }
+}
+
+/* Adjust styles for large screens (1024px and up) */
+@media screen and (max-width: 768px) {
+    .btn1 {
+        font-size: 14px;
+        width: 70px;
+        height: 30px;
+    }
+
+    .s-con1 {
+        font-size: 15px;
+
+    }
+
+    .s-con2 {
+        display: none;
+    }
+}

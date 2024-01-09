@@ -1,0 +1,170 @@
+@font-face {
+    font-family: 'Söhne';
+    src: url('./TestSöhne-Buch.otf') format('opentype');
+    /* Use 'truetype' for TTF files */
+}
+
+
+.up-container1 {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    width: 1200px;
+    height: 700px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.25);
+    border-radius: 15px;
+    font-family: "Söhne", sans-serif;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: #F5F5F5;
+    padding-top: 35px;
+}
+
+.up-container2,
+.up-container5 {
+    display: flex;
+    width: 1130px;
+    height: 300px;
+    gap: 30px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 10px;
+
+}
+
+@media (max-width: 480px) {
+    .up-container1{
+        background-color: white;
+        box-shadow: none;
+        height: 1500px;
+    }
+    .up-container2{
+        flex-direction: column;
+    }
+    .up-container4{
+        width: 200px;
+        
+    }
+    .up-container5{
+        margin-top: 20%;
+    }
+  }
+
+
+.up-container3 {
+    border-radius: 15px;
+    background-color: white;
+    width: 300px;
+
+}
+
+.up-container4 {
+    border-radius: 15px;
+    background-color: white;
+    width: 800px;
+}
+
+.up-modal-container {
+    font-family: "Söhne", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    /* Semi-transparent black background for the blur effect */
+    backdrop-filter: blur(5px);
+    /* Apply a blur effect to the background */
+    z-index: 1000;
+    /* Ensure the modal is on top of other elements */
+}
+
+.up-modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 700px;
+    width: 500px;
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+}
+
+.up-modal-btn1 {
+    background: none;
+    border: none;
+    margin-top: -10px;
+    margin-left: 20px;
+}
+
+.up-modal-btn1 :hover {
+    border-radius: 50%;
+
+}
+
+
+.up-modal-btn2 {
+    width: 100%;
+    background: linear-gradient(to right, #4C40ED, #8C71FF);
+    /* Gradient effect */
+    color: white;
+    border: none;
+    /* Remove border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    /* Adjusted shadow for more visibility */
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.up-modal-btn2:hover {
+    background: linear-gradient(to right, #3a30a9, #6c5ecc);
+    /* Gradient effect on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+}
+
+.up-modal-btn2:disabled {
+    color: white;
+    /* Add any other styles for the disabled state */
+}
+
+.up-modal-btn2:active {
+    transform: scale(0.98);
+    /* Adjust the scaling factor as needed */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    color: white !important;
+    /* Ensure the text color is white during the active state */
+}
+
+.up-modal-btn3 {
+    background-color: #4C40ED;
+    color: white;
+    font-family: Inter, sans-serif;
+    border: none;
+    box-shadow: 0 2px 5px rgb(81, 64, 192, 0.15);  /* Converts hex to RGB with 0.1 opacity */
+  }
+  
+  .up-modal-btn3:hover {
+    background-color: #523ce4;
+    box-shadow: 0 2px 10px rgb(76, 64, 237, 0.7);
+    border: none;
+    /* Updates shadow on hover */
+  }
+  
+
+
+.up-modal-btn4 {
+    background-color: #fff;
+    color: #4C40ED;
+    border: 1px solid #4C40ED;
+    font-family: Inter, sans-serif;
+    box-shadow: 0 2px 5px rgb(81, 64, 192, 0.15); 
+}
+
+.up-modal-btn4:hover {
+    background-color: #4C40ED;
+    color: white;
+    border: none;
+    box-shadow: 0 2px 10px rgb(76, 64, 237, 0.7);
+}

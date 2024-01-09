@@ -1,0 +1,92 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap");
+
+html {
+  font-size: 17px;
+}
+
+body {
+  font-family: var(--font-family);
+}
+
+section {
+  width: 100%;
+  padding: 8rem 0;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Flex */
+.--flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.--dir-column {
+  flex-direction: column;
+}
+
+/* Heading */
+h2 {
+  font-size: 3rem;
+}
+
+/* Center Text */
+.--text-center {
+  text-align: center;
+}
+
+/* Card */
+.--card {
+  border: 1px solid transparent;
+  border-radius: 5px;
+  box-shadow: var(--box-shadow);
+  overflow: hidden;
+}
+
+.--btn {
+  font-size: 1.6rem;
+  font-weight: 400;
+  padding: 6px 8px;
+  margin: 0 5px 0 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.--btn:hover {
+  transform: translateY(-2px);
+}
+
+
+.--btn-primary {
+  color: #fff;
+  background: #007bff;
+}
+
+
+.--form-control {
+  font-size: 1.6rem;
+  font-weight: 300;
+}
+
+.--form-control > * {
+  margin: 5px 0;
+}
+
+.--form-control input {
+  font-size: 1.6rem;
+  font-weight: 300;
+  padding: 8px 1rem;
+  border: 1px solid #777;
+  border-radius: 3px;
+  outline: none;
+}

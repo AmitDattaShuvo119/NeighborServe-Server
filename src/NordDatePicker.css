@@ -1,0 +1,109 @@
+/* NordDatePicker.css */
+
+/* Nord color scheme */
+:root {
+    --nord1: #432eab;
+    /* Darker shade of #4C40ED */
+    --nord2: #4834b7;
+    --nord3: #4d3ac2;
+    --nord4: #523fcf;
+    --nord5: #5745da;
+    --nord6: #5c4be6;
+    /* Base color #4C40ED */
+    --nord7: #6655ed;
+    --nord8: #7160f2;
+    --nord9: #7b6cf8;
+    --nord10: #8678fd;
+    --nord11: #9183ff;
+    --nord12: #9c8fff;
+    --nord13: #a798ff;
+    --nord14: #b2a3ff;
+    --nord15: #bdaeff;
+    /* Lighter shade of #4C40ED */
+}
+
+@font-face {
+    font-family: 'Satoshi';
+    src: url('./Satoshi-Regular.otf') format('opentype');
+    /* Use 'truetype' for TTF files */
+}
+
+/* Custom styles for NordDatePicker */
+.nord-datepicker {
+    display: inline-block;
+    color: white;
+}
+
+.react-datepicker {
+    font-family: 'Satoshi', sans-serif;
+    background-color: var(--nord0);
+    color: var(--nord4);
+    border: 1px solid var(--nord2);
+    border-radius: 4px;
+    background-color: #d16aff;
+    cursor: none;
+}
+
+.react-datepicker__header {
+    background-color: var(--nord1);
+    color: var(--nord6);
+
+}
+
+.react-datepicker__current-month{
+    color: white;
+}
+
+.react-datepicker__day-name {
+    color: var(--nord4);
+
+}
+
+.react-datepicker__day,
+.react-datepicker__day-name {
+    color: white;
+
+
+}
+
+.react-datepicker__day:hover {
+    background-color: var(--nord3);
+    color: white;
+}
+
+.react-datepicker__day--selected {
+    background-color: var(--nord7);
+    color: var(--nord0);
+}
+
+.react-datepicker__day--keyboard-selected {
+    background-color: var(--nord8);
+    color: var(--nord0);
+}
+
+.react-datepicker__day--outside-month {
+    color: var(--nord2);
+
+}
+
+.react-datepicker__month {
+    margin: 0;
+    background-color: #bba8ff;
+    color: white;
+}
+
+.react-datepicker__year-text {
+    color: var(--nord4);
+    background-color: white;
+}
+
+.react-datepicker__navigation {
+    background-color: var(--nord2);
+    border: none;
+    color: white;
+}
+
+.react-datepicker__navigation--next {
+    right: 0;
+    color: white;
+}
