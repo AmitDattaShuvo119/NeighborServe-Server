@@ -7,6 +7,8 @@ const client = require("../database/db");
 const { ObjectId } = require("mongodb");
 
 const usersCollection = client.db("NeighborServe").collection("UsersData");
+// const ChatsCollection = client.db("NeighborServe").collection("Chats"); // Update with your actual database and collection names
+// const msgCollection = client.db("NeighborServe").collection("Messages");
 
 router.get("/api/:id/:category", async (req, res) => {
   const id = req.params.id; // Use req.params.id to get the id from route parameters
@@ -234,6 +236,9 @@ router.get("/getId/:userEmail", async (req, res) => {
 
 router.get("/providersProfile", async (req, res) => {
   const id = req.query.id;
+  if (!/^[0-9a-fA-F]{24}$/.test(id)) {
+    return res.status(400).send("Invalid ObjectId format");
+  }
   const filter = { _id: new ObjectId(id) };
   const result = await usersCollection.find(filter).toArray();
   res.send(result);
@@ -672,6 +677,7 @@ router.patch("/denied/:id", async (req, res) => {
   const result = await usersCollection.updateOne(filter, updateDoc);
   res.send(result);
 });
+
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
