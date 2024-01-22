@@ -34,32 +34,46 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket?.on(
-    "sendMessage",
-    async ({ conversationId, senderId, message, receiverId }) => {
-      const receiver = Users.find((user) => user.userId === receiverId);
-      const sender = Users.find((user) => user.userId === senderId);
-      console.log("Sender: ", sender, "receiver", receiver);
-      const user = await usersCollection.findOne(new ObjectId(senderId));
-      console.log("User", user);
-      if (receiver) {
-        io.to(receiver.socketId)
-          .to(sender.socketId)
-          .emit("getMessage", {
-            conversationId,
-            senderId,
-            message,
-            receiverId,
-            user: {
-              id: user._id,
-              name: user.user_fullname,
-              email: user.user_email,
-              receiverId:receiverId,
-            },
-          });
-      }
+  socket?.on("sendMessage", async ({ conversationId, senderId, message, receiverId }) => {
+    const receiver = Users.find((user) => user.userId === receiverId);
+    const sender = Users.find((user) => user.userId === senderId);
+    
+    console.log("Sender: ", sender, "receiver", receiver);
+  
+    // Assuming you have a MongoDB collection named usersCollection
+    const user = await usersCollection.findOne(new ObjectId(senderId));
+    console.log("User", user);
+  
+    if (receiver) {
+      io.to(receiver.socketId)
+        .to(sender.socketId)
+        .emit("getMessage", {
+          conversationId,
+          senderId,
+          message,
+          receiverId,
+          user: {
+            id: user._id,
+            name: user.user_fullname,
+            email: user.user_email,
+            receiverId: receiverId,
+          },
+        });
+    } else {
+      io.to(sender?.socketId).emit("getMessage", {
+        conversationId,
+        senderId,
+        message,
+        receiverId,
+        user: {
+          id: user._id,
+          name: user.user_fullname,
+          email: user.user_email,
+          receiverId: receiverId,
+        },
+      });
     }
-  );
+  });
   socket?.on("disconnect", () => {
     Users = Users.filter((user) => user.socketId !== socket.id);
     console.log("Updated Users list after disconnect:", Users);
