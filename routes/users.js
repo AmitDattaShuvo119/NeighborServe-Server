@@ -275,7 +275,24 @@ router.get("/favProvider", async (req, res) => {
   };
 
   const result = await usersCollection.findOne(userEmali);
- res.send(result)
+  res.send(result);
+});
+
+router.get("/search", async (req, res) => {
+  const searchQuery = req.query.q;
+  const query1 = {
+    $or: [
+      { user_name: { $regex: searchQuery, $options: 'i' } },
+      { user_fullname: { $regex: searchQuery, $options: 'i' } },
+      { user_type: { $regex: searchQuery, $options: 'i' } },
+      { user_category: { $regex: searchQuery, $options: 'i' } },
+    ],
+  };
+  // const query1 = { user_name: { $regex: query, $options: 'i' } };
+  const result = await usersCollection.find(query1).toArray();
+
+  
+  res.json(result);
 });
 
 module.exports = router;
