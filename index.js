@@ -7,8 +7,11 @@ require("dotenv").config();
 const users = require("./routes/users");
 const providers = require("./routes/providers");
 const chatApp = require("./routes/chatApp");
+//const { default: helmet } = require("helmet");
 const port = process.env.PORT || 5000;
+const helmet = require("helmet");
 
+app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
@@ -19,8 +22,6 @@ app.use("/chatApp", chatApp);
 app.get("/", (req, res) => {
   res.send("hello");
 });
-
-
 
 app.listen(port, () => {
   console.log("hello from port 5000");
