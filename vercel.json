@@ -6,7 +6,7 @@
       "use": "@vercel/node"
     },
     {
-      "src": "./routes/chatApp.js",
+      "src": "./chatApp.js",
       "use": "@vercel/node"
     }
   ],
