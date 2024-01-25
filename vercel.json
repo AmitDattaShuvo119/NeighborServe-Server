@@ -1,15 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "./index.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "./routes/chatApp.js",
-      "use": "@vercel/node"
-    }
-  ],
+ 
   "routes": [
     {
       "src": "/socket.io/.*",
