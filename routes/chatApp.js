@@ -10,8 +10,10 @@ const usersCollection = client.db("NeighborServe").collection("UsersData");
 const ChatsCollection = client.db("NeighborServe").collection("Chats"); // Update with your actual database and collection names
 const msgCollection = client.db("NeighborServe").collection("Messages");
 
+const port = process.env.PORT || 5002;
+
 let Users = [];
-const io = require("socket.io")(5002, {
+const io = require("socket.io")(port, {
   cors: {
     origin: "http://localhost:5173",
   },
