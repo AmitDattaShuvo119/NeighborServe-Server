@@ -13,7 +13,7 @@
   "routes": [
     {
       "src": "/socket.io/(.*)",
-      "dest": "./routes/chatApp.js"
+      "dest": "./chatApp.js"
     },
     {
       "src": "/(.*)",
