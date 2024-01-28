@@ -47,8 +47,8 @@ io.on("connection", (socket) => {
     console.log("User", user);
   
     if (receiver) {
-      io.to(receiver.socketId)
-        .to(sender.socketId)
+      io.to(receiver?.socketId)
+        .to(sender?.socketId)
         .emit("getMessage", {
           conversationId,
           senderId,
@@ -76,6 +76,8 @@ io.on("connection", (socket) => {
       });
     }
   });
+
+
   socket?.on("disconnect", () => {
     Users = Users.filter((user) => user.socketId !== socket.id);
     console.log("Updated Users list after disconnect:", Users);
