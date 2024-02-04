@@ -33,6 +33,7 @@ io.on("connection", (socket) => {
     }
   });
 
+
   socket?.on(
     "sendMessage",
     async ({ conversationId, senderId, message, receiverId }) => {
@@ -62,6 +63,7 @@ io.on("connection", (socket) => {
           });
       } else {
         io.to(sender?.socketId).emit("getMessage", {
+
           conversationId,
           senderId,
           message,
@@ -75,7 +77,9 @@ io.on("connection", (socket) => {
         });
       }
     }
+
   );
+
   socket?.on("disconnect", () => {
     Users = Users.filter((user) => user.socketId !== socket.id);
     console.log("Updated Users list after disconnect:", Users);
