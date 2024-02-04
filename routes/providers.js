@@ -11,7 +11,7 @@ const usersCollection = client.db("NeighborServe").collection("UsersData");
 // const msgCollection = client.db("NeighborServe").collection("Messages");
 
 router.get("/api/:id/:category", async (req, res) => {
-  const id = req.params.id; // Use req.params.id to get the id from route parameters
+  const id = req.params.id;
   const category = req.params.category;
   const type = "Service Provider";
   const filter = { user_category: category, user_type: type };
@@ -21,13 +21,12 @@ router.get("/api/:id/:category", async (req, res) => {
   const userLat = document[0].user_lat;
   const userLon = document[0].user_lon;
 
-  // haversine algorithm to calculate distances between 2 coordinates
   function toRadians(degrees) {
     return degrees * (Math.PI / 180);
   }
 
   function haversine(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Radius of the Earth in kilometers
+    const R = 6371;
     const lat1Rad = toRadians(lat1);
     const lon1Rad = toRadians(lon1);
     const lat2Rad = toRadians(lat2);
@@ -40,32 +39,30 @@ router.get("/api/:id/:category", async (req, res) => {
       Math.cos(lat1Rad) * Math.cos(lat2Rad) * Math.sin(dlon / 2) ** 2;
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c;
-    // console.log("distance: " + distance);
     return distance;
   }
 
-  const dataArrayUpdated = result.map((place) => {
-    const distance = haversine(
-      userLat,
-      userLon,
-      place.user_lat,
-      place.user_lon
-    );
-    return { ...place, distance };
-  });
+  const dataArrayUpdated = result
+    .filter(place => place.user_rating !== undefined && place.user_reviews !== undefined)
+    .map((place) => {
+      const distance = haversine(
+        userLat,
+        userLon,
+        place.user_lat,
+        place.user_lon
+      );
+      return { ...place, distance };
+    });
 
-  // Sort the dataArrayWithDistances by distance in ascending order
   dataArrayUpdated.sort((a, b) => a.distance - b.distance);
 
-  // dataArrayUpdated.slice(0, 5).map((data)=>{
-  //   const newData=data;
-  // })
-  // const modifiedArray = dataArrayUpdated.slice(0, 5).map((data) => {});
   const dataArrayUpdatedArray = [...dataArrayUpdated];
-  const firstFiveElements = dataArrayUpdatedArray.slice(0, 3);
+  console.log("results: " + dataArrayUpdated);
+  const firstThreeElements = dataArrayUpdatedArray.slice(0, 3);
 
-  res.send(firstFiveElements);
+  res.send(firstThreeElements);
 });
+
 
 router.get("/api/v2/:id/:category", async (req, res) => {
   try {
@@ -409,12 +406,11 @@ router.get("/appointment/:id/:appDate", async (req, res) => {
       const month = (currentTime.getMonth() + 1).toString().padStart(2, "0");
       const year = currentTime.getFullYear();
       const today = `${month}-${day}-${year}`;
-      
+
       if (today === appDate) {
-        console.log(today +" x "+appDate);
-       return parseInt(time) > hours;
+        console.log(today + " x " + appDate);
+        return parseInt(time) > hours;
       } else return true;
-      
     })
     .map((time) => {
       if (parseInt(time) > 12) {
@@ -487,23 +483,7 @@ router.get("/view_appointment/:userId", async (req, res) => {
   }
 });
 
-// router.get("/request_count/:userId", async (req, res) => {
-//   const id = req.params.userId;
-//   const filter = { _id: new ObjectId(id) };
-//   const result = await usersCollection.find(filter).toArray();
 
-//   if (result.length > 0) {
-//     const appointments = result[0].appointments;
-
-//     // Count the number of appointments with status "Pending"
-//     const pendingAppointmentsCount = appointments.filter(appointment => appointment.status === "Pending").length;
-//     console.log(pendingAppointmentsCount);
-//     res.json({ pendingAppointmentsCount });
-//   } else {
-//     // Handle the case when the user is not found
-//     res.status(404).json({ error: "User not found" });
-//   }
-// });
 
 router.patch(
   "/updateAppointment/:userId/:clientId/:appointmentId",
@@ -522,10 +502,7 @@ router.patch(
         _id: new ObjectId(clientId),
         "appointments.appointmentId": appointmentId,
       };
-      // console.log("userId:", userId);
-      // console.log("clientId:", clientId);
-      // console.log("appointmentId:", appointmentId);
-      // console.log("status:", status);
+  
       const updateDoc = { $set: { "appointments.$.status": status } };
       const updateDoc2 = { $set: { "appointments.$.status": status } };
 
@@ -547,32 +524,7 @@ router.patch(
   }
 );
 
-// router.patch("/updateAppointment2/:userId/:appointmentId", async (req, res) => {
-//   const userId = req.params.userId;
-//   const appointmentId = req.params.appointmentId;
-//   const { status } = req.body;
 
-//   try {
-//     const filter = {
-//       _id: new ObjectId(userId),
-//       "appointments.appointmentId": appointmentId,
-//     };
-//     const updateDoc = { $set: { "appointments.$.status": status } };
-//     const result = await usersCollection.updateOne(filter, updateDoc);
-
-//     if (result.modifiedCount > 0 || result2.modifiedCount > 0) {
-//       res
-//         .status(200)
-//         .json({ message: "Appointment status updated successfully" });
-//     } else {
-//       res
-//         .status(404)
-//         .json({ error: "Appointment not found or status not updated" });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ error: "Error updating appointment status" });
-//   }
-// });
 
 router.get("/appointment_details/:userId/:appointmentId", async (req, res) => {
   const userId = req.params.userId;
@@ -678,7 +630,6 @@ router.patch("/denied/:id", async (req, res) => {
   res.send(result);
 });
 
-
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -715,6 +666,30 @@ router.patch("/updateProfile/:userId", async (req, res) => {
       user_email,
       user_phone,
       user_img,
+    },
+  };
+  const result = await usersCollection.updateOne(filter, updateDoc);
+  res.send(result);
+});
+
+router.patch("/updateVerificationStatus/:userId", async (req, res) => {
+  const id = req.params.userId;
+  const {
+    user_phone,
+    nid_img,
+    license_img,
+    user_verificationStatus2,
+    admin_approval,
+  } = req.body;
+  console.log("abcd: ", nid_img);
+  const filter = { _id: new ObjectId(id) };
+  const updateDoc = {
+    $set: {
+      user_phone,
+      nid_img,
+      license_img,
+      user_verificationStatus2,
+      admin_approval,
     },
   };
   const result = await usersCollection.updateOne(filter, updateDoc);

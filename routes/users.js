@@ -29,11 +29,51 @@ router.get("/alluser", async (req, res) => {
   res.send(result);
 });
 router.get("/allprovider", async (req, res) => {
-  const query = { user_type: "Service Provider" };
+  // const query = { user_type: "Service Provider" };
+  const query = { 
+    admin_approval: 0 };
 
   const result = await usersCollection.find(query).toArray();
   res.send(result);
 });
+
+
+
+
+router.put("/approved/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await usersCollection.findOne(query);
+  const x = result.user_verificationStatus2;
+  console.log(x);
+  const result2 = await usersCollection.updateOne(
+    { _id: new ObjectId(id) },
+    { $set: {admin_approval: 1 , user_verficationStatus: x}},
+  { returnDocument: 'after' } 
+  );
+  // const result = await usersCollection.findOneAndUpdate(
+  //   { _id: new ObjectId(id) },
+  //   { $set: { admin_approval: 1 } },
+  //   { returnDocument: 'after' } // Return the updated document
+  // );
+ 
+});
+
+router.get("/view/:id", async (req, res) => {
+  const id = req.params.id;
+  const result = await usersCollection.findOne({ _id: new ObjectId(id) });
+  res.send(result);
+ 
+});
+
+
+
+
+
+
+
+
+
 
 router.get("/provider/:type", async (req, res) => {
   const type = req.params.type;
