@@ -4,16 +4,13 @@ const router = express.Router();
 const client = require("../database/db");
 const { ObjectId } = require("mongodb");
 
-
-
+const port = process.env.PORT || 5002;
 const usersCollection = client.db("NeighborServe").collection("UsersData");
 const ChatsCollection = client.db("NeighborServe").collection("Chats"); // Update with your actual database and collection names
 const msgCollection = client.db("NeighborServe").collection("Messages");
 
-
-
 let Users = [];
-const io = require("socket.io")(process.env.PORT, {
+const io = require("socket.io")(port, {
   cors: {
     origin: "http://localhost:5173",
   },
@@ -36,20 +33,37 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket?.on("sendMessage", async ({ conversationId, senderId, message, receiverId }) => {
-    const receiver = Users.find((user) => user.userId === receiverId);
-    const sender = Users.find((user) => user.userId === senderId);
-    
-    console.log("Sender: ", sender, "receiver", receiver);
-  
-    // Assuming you have a MongoDB collection named usersCollection
-    const user = await usersCollection.findOne(new ObjectId(senderId));
-    console.log("User", user);
-  
-    if (receiver) {
-      io.to(receiver?.socketId)
-        .to(sender?.socketId)
-        .emit("getMessage", {
+
+  socket?.on(
+    "sendMessage",
+    async ({ conversationId, senderId, message, receiverId }) => {
+      const receiver = Users.find((user) => user.userId === receiverId);
+      const sender = Users.find((user) => user.userId === senderId);
+
+      console.log("Sender: ", sender, "receiver", receiver);
+
+      // Assuming you have a MongoDB collection named usersCollection
+      const user = await usersCollection.findOne(new ObjectId(senderId));
+      console.log("User", user);
+
+      if (receiver) {
+        io.to(receiver.socketId)
+          .to(sender.socketId)
+          .emit("getMessage", {
+            conversationId,
+            senderId,
+            message,
+            receiverId,
+            user: {
+              id: user._id,
+              name: user.user_fullname,
+              email: user.user_email,
+              receiverId: receiverId,
+            },
+          });
+      } else {
+        io.to(sender?.socketId).emit("getMessage", {
+
           conversationId,
           senderId,
           message,
@@ -61,22 +75,10 @@ io.on("connection", (socket) => {
             receiverId: receiverId,
           },
         });
-    } else {
-      io.to(sender?.socketId).emit("getMessage", {
-        conversationId,
-        senderId,
-        message,
-        receiverId,
-        user: {
-          id: user._id,
-          name: user.user_fullname,
-          email: user.user_email,
-          receiverId: receiverId,
-        },
-      });
+      }
     }
-  });
 
+  );
 
   socket?.on("disconnect", () => {
     Users = Users.filter((user) => user.socketId !== socket.id);
@@ -176,7 +178,7 @@ router.get("/conversations/:userId", async (req, res) => {
             email: user?.user_email,
             name: user?.user_fullname,
             receiverId: user?._id,
-            img:user?.user_img,
+            img: user?.user_img,
           },
           conversationId: conversation?._id,
         };
@@ -190,8 +192,6 @@ router.get("/conversations/:userId", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
-
 
 router.post("/message", async (req, res) => {
   try {
@@ -260,7 +260,7 @@ router.get("/message/:conversationId", async (req, res) => {
               id: user._id,
               email: user?.user_email,
               name: user?.user_fullname,
-              img:user?.user_img,
+              img: user?.user_img,
               // Include conversationId,
             },
             message: message?.message,
@@ -273,7 +273,7 @@ router.get("/message/:conversationId", async (req, res) => {
     };
 
     const conversationId = req.params.conversationId;
-   
+
     // if (!/^[0-9a-fA-F]{24}$/.test(new ObjectId(conversationId))) {
     //   return res.status(400).send("Invalid ObjectId format");
     // }
@@ -289,15 +289,11 @@ router.get("/message/:conversationId", async (req, res) => {
     } else {
       checkMessage(conversationId);
     }
-
-    
   } catch (error) {
     console.log("Error", error);
     res.status(500).send("Internal Server Error");
   }
 });
-
-
 
 router.get("/users/:userId", async (req, res) => {
   try {
@@ -319,7 +315,7 @@ router.get("/users/:userId", async (req, res) => {
             email: user.user_email,
             name: user.user_fullname,
             receiverId: user._id,
-            img:user?.user_img,
+            img: user?.user_img,
             // Assuming _id is an ObjectId, convert it to a string
           },
           UserId: user._id,
